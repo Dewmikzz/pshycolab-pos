@@ -37,15 +37,61 @@ export function OrderPanel() {
     const roundingAdj = calculateRoundingAdjustment(rawTotal);
     const finalTotal = roundToNearestFiveCents(rawTotal);
 
-    const handlePrintBill = () => {
+    const [isPrinting, setIsPrinting] = useState(false);
+
+    const handlePrintBill = async () => {
         if (items.length === 0) return;
 
-        // Fetch fresh settings state directly to ensure updates are reflected immediately
-        const { receiptSettings } = useSettingsStore.getState();
+        setIsPrinting(true);
+        const { receiptSettings, printers } = useSettingsStore.getState();
 
+        // 1. Try to find a MAIN printer for silent printing
+        const mainPrinter = printers.find(p => p.type === 'main');
+
+        if (mainPrinter) {
+            try {
+                const receiptData = {
+                    businessName: receiptSettings.businessName,
+                    addressLine1: receiptSettings.addressLine1,
+                    addressLine2: receiptSettings.addressLine2,
+                    contactPhone: receiptSettings.contactPhone,
+                    footerMessage: receiptSettings.footerMessage,
+                    tableId: activeTableId,
+                    items: items,
+                    subtotal: rawSubtotal,
+                    discount: discount,
+                    tax: tax,
+                    rounding: roundingAdj,
+                    total: finalTotal
+                };
+
+                const response = await fetch('/api/print', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        printer: mainPrinter,
+                        data: receiptData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    setIsPrinting(false);
+                    return; // Success! No need to open window.
+                } else {
+                    console.warn("Silent print failed, falling back to browser:", result.error);
+                }
+            } catch (error) {
+                console.error("Silent print network error:", error);
+            }
+        }
+
+        // 2. Fallback to Browser Print
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
             alert("Please allow popups to print.");
+            setIsPrinting(false);
             return;
         }
 
@@ -134,6 +180,7 @@ export function OrderPanel() {
 
         printWindow.document.write(html);
         printWindow.document.close();
+        setIsPrinting(false);
     };
 
     return (
@@ -236,10 +283,11 @@ export function OrderPanel() {
                 <div className="flex gap-2">
                     <button
                         onClick={handlePrintBill}
-                        className="p-2 bg-pos-bg rounded-lg text-pos-text-secondary hover:text-white hover:bg-pos-accent/20 transition-colors"
+                        disabled={isPrinting}
+                        className={`p-2 bg-pos-bg rounded-lg text-pos-text-secondary hover:text-white hover:bg-pos-accent/20 transition-colors ${isPrinting ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title="Print Bill"
                     >
-                        <Printer size={18} />
+                        <Printer size={18} className={isPrinting ? "animate-pulse" : ""} />
                     </button>
                     <button
                         onClick={() => setShowMoveTable(true)}

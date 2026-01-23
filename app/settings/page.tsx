@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useSettingsStore } from "@/store/useSettingsStore";
-import { Lock, FileText, Save, Check } from "lucide-react";
+import { useSettingsStore, PrinterConfig } from "@/store/useSettingsStore";
+import { Lock, FileText, Save, Check, Printer, Plus, Trash2, Edit2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function SettingsPage() {
@@ -12,15 +12,30 @@ export default function SettingsPage() {
         isLocked,
         setLocked,
         receiptSettings,
-        updateReceiptSettings
+        updateReceiptSettings,
+        printers,
+        addPrinter,
+        removePrinter,
+        updatePrinter
     } = useSettingsStore();
 
-    const [activeTab, setActiveTab] = useState<'security' | 'receipt'>('security');
+    const [activeTab, setActiveTab] = useState<'security' | 'receipt' | 'printers'>('security');
     const [tempPassword, setTempPassword] = useState(lockPassword);
     const [saved, setSaved] = useState(false);
 
     // Form states for receipt
     const [receiptForm, setReceiptForm] = useState(receiptSettings);
+
+    // Printer Form State
+    const [isEditingPrinter, setIsEditingPrinter] = useState(false);
+    const [printerForm, setPrinterForm] = useState<PrinterConfig>({
+        id: "",
+        name: "",
+        type: "main",
+        connection: "ip",
+        ip: "192.168.1.100",
+        port: 9100
+    });
 
     const handleSaveSecurity = () => {
         setLockPassword(tempPassword);
@@ -30,6 +45,28 @@ export default function SettingsPage() {
     const handleSaveReceipt = () => {
         updateReceiptSettings(receiptForm);
         showSaved();
+    };
+
+    const handleSavePrinter = () => {
+        if (printerForm.id) {
+            updatePrinter(printerForm.id, printerForm);
+        } else {
+            addPrinter({ ...printerForm, id: Date.now().toString() });
+        }
+        setIsEditingPrinter(false);
+        setPrinterForm({ id: "", name: "", type: "main", connection: "ip", ip: "", port: 9100 });
+        showSaved();
+    };
+
+    const handleEditPrinter = (p: PrinterConfig) => {
+        setPrinterForm(p);
+        setIsEditingPrinter(true);
+    };
+
+    const handleDeletePrinter = (id: string) => {
+        if (confirm("Delete this printer?")) {
+            removePrinter(id);
+        }
     };
 
     const showSaved = () => {
@@ -57,6 +94,13 @@ export default function SettingsPage() {
                     >
                         <FileText size={20} />
                         <span className="font-bold">Receipt Template</span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('printers')}
+                        className={`flex items-center gap-3 p-3 rounded-xl text-left transition-colors ${activeTab === 'printers' ? 'bg-pos-accent text-white' : 'text-pos-text-secondary hover:bg-pos-bg hover:text-white'}`}
+                    >
+                        <Printer size={20} />
+                        <span className="font-bold">Printers</span>
                     </button>
                 </div>
 
@@ -167,6 +211,134 @@ export default function SettingsPage() {
                                 {saved ? <Check size={20} /> : <Save size={20} />}
                                 <span>{saved ? "Saved!" : "Save Receipt Settings"}</span>
                             </button>
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'printers' && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-bold text-white">Printer Configuration</h2>
+                                <button
+                                    onClick={() => { setIsEditingPrinter(true); setPrinterForm({ id: "", name: "", type: "main", connection: "ip", ip: "", port: 9100 }); }}
+                                    className="flex items-center gap-2 bg-pos-accent px-4 py-2 rounded-lg text-white font-bold hover:brightness-110"
+                                >
+                                    <Plus size={18} />
+                                    <span>Add Printer</span>
+                                </button>
+                            </div>
+
+                            {/* Printer List */}
+                            <div className="grid grid-cols-1 gap-4">
+                                {printers.length === 0 ? (
+                                    <div className="text-pos-text-secondary text-center py-8 bg-pos-bg rounded-xl border border-pos-border">
+                                        No printers configured. Add one to enable silent IP printing.
+                                    </div>
+                                ) : (
+                                    printers.map(printer => (
+                                        <div key={printer.id} className="bg-pos-bg border border-pos-border rounded-xl p-4 flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 bg-pos-panel rounded-lg flex items-center justify-center text-pos-accent">
+                                                    <Printer size={24} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-white">{printer.name}</h3>
+                                                    <div className="flex gap-2 text-xs text-pos-text-secondary">
+                                                        <span className="uppercase bg-white/5 px-2 py-0.5 rounded">{printer.type}</span>
+                                                        <span className="uppercase bg-white/5 px-2 py-0.5 rounded">{printer.connection}</span>
+                                                        <span>{printer.ip}:{printer.port}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => handleEditPrinter(printer)} className="p-2 hover:bg-white/10 rounded-lg text-white">
+                                                    <Edit2 size={18} />
+                                                </button>
+                                                <button onClick={() => handleDeletePrinter(printer.id)} className="p-2 hover:bg-red-500/20 rounded-lg text-red-500">
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            {/* Printer Config Form */}
+                            {isEditingPrinter && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                                    <div className="bg-pos-panel w-full max-w-md rounded-2xl p-6 shadow-2xl border border-pos-border">
+                                        <h3 className="text-xl font-bold text-white mb-4">{printerForm.id ? "Edit Printer" : "Add Printer"}</h3>
+
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-sm text-pos-text-secondary">Printer Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={printerForm.name}
+                                                    onChange={e => setPrinterForm({ ...printerForm, name: e.target.value })}
+                                                    className="bg-pos-bg border border-pos-border p-3 rounded-lg text-white outline-none focus:border-pos-accent"
+                                                    placeholder="e.g. Counter Printer"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="text-sm text-pos-text-secondary">Type</label>
+                                                    <select
+                                                        value={printerForm.type}
+                                                        // @ts-ignore
+                                                        onChange={e => setPrinterForm({ ...printerForm, type: e.target.value })}
+                                                        className="bg-pos-bg border border-pos-border p-3 rounded-lg text-white outline-none focus:border-pos-accent"
+                                                    >
+                                                        <option value="main">Main (Cashier)</option>
+                                                        <option value="kitchen">Kitchen</option>
+                                                        <option value="bar">Bar</option>
+                                                    </select>
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="text-sm text-pos-text-secondary">Connection</label>
+                                                    <select
+                                                        value={printerForm.connection}
+                                                        // @ts-ignore
+                                                        onChange={e => setPrinterForm({ ...printerForm, connection: e.target.value })}
+                                                        className="bg-pos-bg border border-pos-border p-3 rounded-lg text-white outline-none focus:border-pos-accent"
+                                                    >
+                                                        <option value="lan">LAN (Ethernet)</option>
+                                                        <option value="ip">WiFi / IP</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div className="col-span-2 flex flex-col gap-2">
+                                                    <label className="text-sm text-pos-text-secondary">IP Address</label>
+                                                    <input
+                                                        type="text"
+                                                        value={printerForm.ip}
+                                                        onChange={e => setPrinterForm({ ...printerForm, ip: e.target.value })}
+                                                        className="bg-pos-bg border border-pos-border p-3 rounded-lg text-white outline-none focus:border-pos-accent font-mono"
+                                                        placeholder="192.168.1.xxx"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="text-sm text-pos-text-secondary">Port</label>
+                                                    <input
+                                                        type="number"
+                                                        value={printerForm.port}
+                                                        onChange={e => setPrinterForm({ ...printerForm, port: parseInt(e.target.value) || 9100 })}
+                                                        className="bg-pos-bg border border-pos-border p-3 rounded-lg text-white outline-none focus:border-pos-accent font-mono"
+                                                        placeholder="9100"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-end gap-3 mt-8">
+                                            <button onClick={() => setIsEditingPrinter(false)} className="px-4 py-2 text-pos-text-secondary hover:text-white">Cancel</button>
+                                            <button onClick={handleSavePrinter} className="px-6 py-2 bg-pos-accent text-white rounded-lg font-bold hover:brightness-110">Save Printer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </motion.div>
                     )}
                 </div>

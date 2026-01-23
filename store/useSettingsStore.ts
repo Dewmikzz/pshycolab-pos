@@ -9,6 +9,15 @@ interface ReceiptSettings {
     footerMessage: string;
 }
 
+export interface PrinterConfig {
+    id: string;
+    name: string;
+    type: 'main' | 'kitchen' | 'bar';
+    connection: 'lan' | 'ip'; // Both use IP logic in backend, mainly for labeling
+    ip: string;
+    port: number;
+}
+
 interface SettingsState {
     // Security
     lockPassword: string; // Stored as plain text for simplicity in this demo, ideally hashed
@@ -17,10 +26,18 @@ interface SettingsState {
     // Receipt
     receiptSettings: ReceiptSettings;
 
+    // Printers
+    printers: PrinterConfig[];
+
     // Actions
     setLockPassword: (password: string) => void;
     setLocked: (locked: boolean) => void;
     updateReceiptSettings: (settings: Partial<ReceiptSettings>) => void;
+
+    // Printer Actions
+    addPrinter: (printer: PrinterConfig) => void;
+    updatePrinter: (id: string, updates: Partial<PrinterConfig>) => void;
+    removePrinter: (id: string) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -37,10 +54,20 @@ export const useSettingsStore = create<SettingsState>()(
                 footerMessage: "Thank you for dining with us!"
             },
 
+            printers: [],
+
             setLockPassword: (password) => set({ lockPassword: password }),
             setLocked: (locked) => set({ isLocked: locked }),
             updateReceiptSettings: (settings) => set((state) => ({
                 receiptSettings: { ...state.receiptSettings, ...settings }
+            })),
+
+            addPrinter: (printer) => set((state) => ({ printers: [...state.printers, printer] })),
+            updatePrinter: (id, updates) => set((state) => ({
+                printers: state.printers.map(p => p.id === id ? { ...p, ...updates } : p)
+            })),
+            removePrinter: (id) => set((state) => ({
+                printers: state.printers.filter(p => p.id !== id)
             })),
         }),
         {
