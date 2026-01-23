@@ -39,6 +39,20 @@ export function RadialMenu() {
                         className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-md"
                     />
 
+                    {/* Menu Center App Icon (Fixed on Left Edge) */}
+                    <motion.div
+                        initial={{ x: -100, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -100, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="fixed top-1/2 left-0 -translate-y-1/2 z-[101] pl-6 pointer-events-none"
+                    >
+                        <div className="w-24 h-24 bg-pos-bg rounded-full border-4 border-pos-accent flex items-center justify-center shadow-2xl relative">
+                            <div className="absolute inset-0 rounded-full border border-white/20" />
+                            <span className="text-4xl">🥘</span>
+                        </div>
+                    </motion.div>
+
                     {/* Menu Container - Centered Vertically on Left Edge */}
                     <div className="fixed top-1/2 left-0 -translate-y-1/2 z-[100] w-0 h-0">
                         {NAV_ITEMS.map((item, index) => {
@@ -91,16 +105,17 @@ export function RadialMenu() {
                                         )}
                                     >
                                         <div className={clsx(
-                                            "w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-300",
+                                            "w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-300 relative overflow-hidden",
                                             isActive
                                                 ? "bg-pos-accent text-white shadow-pos-accent/50 scale-110"
                                                 : "bg-pos-panel border border-pos-border text-pos-text-secondary group-hover:bg-pos-accent group-hover:text-white group-hover:border-pos-accent group-hover:scale-110"
                                         )}>
-                                            <item.icon size={36} />
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+                                            <item.icon size={36} className="relative z-10" />
                                         </div>
                                         <span className={clsx(
-                                            "text-lg font-bold tracking-wide transition-colors uppercase bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm",
-                                            isActive ? "text-pos-accent bg-black/60" : "text-white/80 group-hover:text-white"
+                                            "text-lg font-bold tracking-wide transition-colors uppercase bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/10",
+                                            isActive ? "text-pos-accent border-pos-accent/30" : "text-white/80 group-hover:text-white"
                                         )}>
                                             {item.label}
                                         </span>

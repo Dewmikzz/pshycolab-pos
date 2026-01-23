@@ -7,7 +7,7 @@ export function TopBar() {
     const { viewMode, activeTableId, setViewMode, toggleMenu, isMenuOpen } = usePosStore();
 
     return (
-        <div className="h-16 w-full bg-pos-panel border-b border-pos-border flex items-center px-6 justify-between shadow-md z-10 transition-all">
+        <div className="h-16 w-full bg-pos-panel border-b border-pos-border flex items-center px-6 justify-between shadow-md z-10 transition-all sticky top-0 shrink-0">
             <div className="flex items-center gap-4">
                 {/* Menu Trigger */}
                 <button

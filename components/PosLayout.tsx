@@ -9,7 +9,7 @@ import { usePosStore } from "@/store/usePosStore";
 export function PosLayout() {
     const { viewMode } = usePosStore();
     return (
-        <div className="flex flex-col h-full w-full bg-pos-bg overflow-hidden">
+        <div className="flex flex-col h-[100dvh] w-full bg-pos-bg overflow-hidden">
             <TopBar />
             <div className="flex-1 flex overflow-hidden">
                 {/* Product Grid on Left (Flexible) */}

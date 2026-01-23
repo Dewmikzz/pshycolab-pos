@@ -1,8 +1,9 @@
 "use client";
 
 import { usePosStore } from "@/store/usePosStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { formatCurrency, roundToNearestFiveCents, calculateRoundingAdjustment } from "@/lib/utils";
-import { Trash2, AlertCircle, ArrowRightLeft, Percent, Wallet, PauseCircle, XCircle } from "lucide-react";
+import { Trash2, AlertCircle, ArrowRightLeft, Percent, Wallet, PauseCircle, XCircle, Printer } from "lucide-react";
 import { clsx } from "clsx";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -35,6 +36,104 @@ export function OrderPanel() {
 
     const roundingAdj = calculateRoundingAdjustment(rawTotal);
     const finalTotal = roundToNearestFiveCents(rawTotal);
+
+    const { receiptSettings } = useSettingsStore();
+
+    const handlePrintBill = () => {
+        if (items.length === 0) return;
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert("Please allow popups to print.");
+            return;
+        }
+
+        const html = `
+            <html>
+                <head>
+                    <title>Bill - Table ${activeTableId}</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; padding: 20px; width: 300px; margin: 0 auto; color: #000; }
+                        .header { text-align: center; margin-bottom: 20px; }
+                        .title { font-size: 1.5em; font-weight: bold; }
+                        .subtitle { font-size: 0.9em; margin-bottom: 5px; }
+                        .line { border-bottom: 1px dashed #000; margin: 10px 0; }
+                        .item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9em; }
+                        .totals { margin-top: 10px; }
+                        .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+                        .total-row { font-weight: bold; font-size: 1.2em; border-top: 2px dashed #000; border-bottom: 2px dashed #000; padding: 10px 0; margin-top: 10px; }
+                        .footer { text-align: center; margin-top: 20px; font-size: 0.8em; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="title">${receiptSettings.businessName}</div>
+                        <div class="subtitle">${receiptSettings.addressLine1}</div>
+                        ${receiptSettings.addressLine2 ? `<div class="subtitle">${receiptSettings.addressLine2}</div>` : ''}
+                        <div class="subtitle">Tel: ${receiptSettings.contactPhone}</div>
+                        <br/>
+                        <div>Table: ${activeTableId}</div>
+                        <div>Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+                    </div>
+
+                    <div class="line"></div>
+
+                    <div>
+                        ${items.map(item => `
+                            <div class="item">
+                                <span>${item.quantity}x ${item.name}</span>
+                                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                            ${item.selectedModifiers ? Object.values(item.selectedModifiers).flat().map(m => `
+                                <div class="item" style="color: #666; font-size: 0.8em; padding-left: 10px;">
+                                    <span>+ ${m.label}</span>
+                                </div>
+                            `).join('') : ''}
+                        `).join('')}
+                    </div>
+
+                    <div class="line"></div>
+
+                    <div class="totals">
+                        <div class="row">
+                            <span>Subtotal</span>
+                            <span>${rawSubtotal.toFixed(2)}</span>
+                        </div>
+                        ${discount > 0 ? `
+                        <div class="row">
+                            <span>Discount</span>
+                            <span>-${discount.toFixed(2)}</span>
+                        </div>
+                        ` : ''}
+                        <div class="row">
+                            <span>Tax (5%)</span>
+                            <span>${tax.toFixed(2)}</span>
+                        </div>
+                        <div class="row">
+                            <span>Rounding</span>
+                            <span>${roundingAdj.toFixed(2)}</span>
+                        </div>
+                        <div class="row total-row">
+                            <span>Total</span>
+                            <span>${finalTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p>${receiptSettings.footerMessage}</p>
+                        <p>** THIS IS NOT A RECEIPT **</p>
+                    </div>
+
+                    <script>
+                        window.onload = function() { window.print(); window.close(); }
+                    </script>
+                </body>
+            </html>
+        `;
+
+        printWindow.document.write(html);
+        printWindow.document.close();
+    };
 
     return (
         <div className="flex flex-col h-full relative">
@@ -135,6 +234,13 @@ export function OrderPanel() {
                 {/* Top Actions: Discount & Move */}
                 <div className="flex gap-2">
                     <button
+                        onClick={handlePrintBill}
+                        className="p-2 bg-pos-bg rounded-lg text-pos-text-secondary hover:text-white hover:bg-pos-accent/20 transition-colors"
+                        title="Print Bill"
+                    >
+                        <Printer size={18} />
+                    </button>
+                    <button
                         onClick={() => setShowMoveTable(true)}
                         className="p-2 bg-pos-bg rounded-lg text-pos-text-secondary hover:text-white hover:bg-pos-accent/20 transition-colors"
                         title="Move Table"
@@ -166,8 +272,8 @@ export function OrderPanel() {
                             key={item.cartItemId || item.id}
                             onClick={() => setExpandedItemId(expandedItemId === item.cartItemId ? null : item.cartItemId)}
                             className={`p-3 rounded-xl border flex flex-col gap-2 cursor-pointer transition-colors ${expandedItemId === item.cartItemId
-                                    ? "bg-pos-panel border-pos-accent/50"
-                                    : "bg-transparent border-transparent hover:bg-pos-panel/50"
+                                ? "bg-pos-panel border-pos-accent/50"
+                                : "bg-transparent border-transparent hover:bg-pos-panel/50"
                                 }`}
                         >
                             <div className="flex justify-between items-start">
