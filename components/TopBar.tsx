@@ -7,7 +7,7 @@ export function TopBar() {
     const { viewMode, activeTableId, setViewMode } = usePosStore();
 
     return (
-        <div className="h-16 w-full bg-pos-panel border-b border-pos-border flex items-center px-6 pl-24 justify-between shadow-md z-10 transition-all">
+        <div className="h-16 w-full bg-pos-panel border-b border-pos-border flex items-center px-6 justify-between shadow-md z-10 transition-all">
             <div className="flex items-center gap-4">
                 {viewMode === 'order' ? (
                     <>

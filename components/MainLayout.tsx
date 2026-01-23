@@ -1,6 +1,6 @@
 "use client";
 
-import { CircularSidebar } from "./CircularSidebar";
+import { AnimatedSidebar } from "./AnimatedSidebar";
 import { usePathname } from "next/navigation";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -12,9 +12,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     }
 
     return (
-        <div className="flex h-full w-full bg-pos-bg overflow-hidden relative">
-            <CircularSidebar />
-            <main className="flex-1 h-full overflow-hidden w-full pl-2">
+        <div className="flex h-full w-full bg-pos-bg overflow-hidden">
+            <AnimatedSidebar />
+            <main className="flex-1 h-full overflow-hidden w-full">
                 {children}
             </main>
         </div>
