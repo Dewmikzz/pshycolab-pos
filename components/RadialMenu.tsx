@@ -22,9 +22,9 @@ export function RadialMenu() {
     // Large Semi-Circle Config (Centered on Left Edge)
     const radius = 220; // Increased radius for tablet
     const totalItems = NAV_ITEMS.length;
-    // Spread from -60 degrees (top) to +60 degrees (bottom)
-    const startAngle = -60;
-    const endAngle = 60;
+    // Spread from -80 degrees (top) to +80 degrees (bottom) for 160 degrees total
+    const startAngle = -80;
+    const endAngle = 80;
 
     return (
         <AnimatePresence>
@@ -105,16 +105,16 @@ export function RadialMenu() {
                                         )}
                                     >
                                         <div className={clsx(
-                                            "w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-300 relative overflow-hidden",
+                                            "w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-300 relative overflow-hidden",
                                             isActive
                                                 ? "bg-pos-accent text-white shadow-pos-accent/50 scale-110"
                                                 : "bg-pos-panel border border-pos-border text-pos-text-secondary group-hover:bg-pos-accent group-hover:text-white group-hover:border-pos-accent group-hover:scale-110"
                                         )}>
                                             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-                                            <item.icon size={36} className="relative z-10" />
+                                            <item.icon size={28} strokeWidth={1.5} className="relative z-10" />
                                         </div>
                                         <span className={clsx(
-                                            "text-lg font-bold tracking-wide transition-colors uppercase bg-black/60 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/10",
+                                            "text-sm font-bold tracking-wide transition-colors uppercase bg-black/60 px-3 py-1 rounded-full backdrop-blur-md border border-white/10",
                                             isActive ? "text-pos-accent border-pos-accent/30" : "text-white/80 group-hover:text-white"
                                         )}>
                                             {item.label}

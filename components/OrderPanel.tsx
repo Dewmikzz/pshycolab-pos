@@ -37,10 +37,11 @@ export function OrderPanel() {
     const roundingAdj = calculateRoundingAdjustment(rawTotal);
     const finalTotal = roundToNearestFiveCents(rawTotal);
 
-    const { receiptSettings } = useSettingsStore();
-
     const handlePrintBill = () => {
         if (items.length === 0) return;
+
+        // Fetch fresh settings state directly to ensure updates are reflected immediately
+        const { receiptSettings } = useSettingsStore.getState();
 
         const printWindow = window.open('', '_blank');
         if (!printWindow) {

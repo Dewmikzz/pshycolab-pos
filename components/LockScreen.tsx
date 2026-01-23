@@ -48,13 +48,20 @@ export function LockScreen() {
                 animate={{ scale: 1, opacity: 1 }}
                 className="w-full max-w-md bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl backdrop-blur-md flex flex-col items-center gap-8"
             >
-                {/* Header */}
+                {/* Header with Time */}
                 <div className="flex flex-col items-center gap-2 text-white">
+                    <div className="text-6xl font-black tracking-tighter mb-4 text-white/90">
+                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <div className="text-sm font-medium uppercase tracking-widest text-pos-text-secondary mb-8">
+                        {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                    </div>
+
                     <div className="w-20 h-20 bg-pos-accent/20 rounded-full flex items-center justify-center mb-2 animate-pulse">
                         <Lock size={40} className="text-pos-accent" />
                     </div>
-                    <h1 className="text-3xl font-bold tracking-tight">System Locked</h1>
-                    <p className="text-pos-text-secondary">Enter PIN to access POS Terminal</p>
+                    <h1 className="text-2xl font-bold tracking-tight">System Locked</h1>
+                    <p className="text-pos-text-secondary">Enter PIN to access</p>
                 </div>
 
                 {/* PIN Display */}
