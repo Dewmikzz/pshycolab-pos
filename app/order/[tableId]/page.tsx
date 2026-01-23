@@ -5,6 +5,7 @@ import { CategoryStories } from "@/components/mobile/CategoryStories";
 import { ProductDrawer } from "@/components/mobile/ProductDrawer";
 import { CartFloatingButton } from "@/components/mobile/CartFloatingButton";
 import { OrderSuccess } from "@/components/mobile/OrderSuccess";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { usePosStore } from "@/store/usePosStore";
 import { useMenuStore } from "@/store/useMenuStore";
 import { formatCurrency } from "@/lib/utils";
@@ -17,6 +18,7 @@ export default function OrderPage({ params }: { params: Promise<{ tableId: strin
     const [activeCategory, setActiveCategory] = useState<string>("");
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
     // Store integration
     const { addToOrder, orders, setActiveTable } = usePosStore();
@@ -40,6 +42,12 @@ export default function OrderPage({ params }: { params: Promise<{ tableId: strin
         }
     };
 
+    const handleConfirmOrder = () => {
+        setIsConfirmOpen(false);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+    };
+
     const filteredProducts = products.filter(p => p.category === activeCategory);
 
     const currentCategoryLabel = categories.find(c => c.id === activeCategory)?.label || "";
@@ -50,6 +58,16 @@ export default function OrderPage({ params }: { params: Promise<{ tableId: strin
         <div className="pb-32 min-h-screen bg-pos-bg text-white">
             {/* Success Overlay */}
             {showSuccess && <OrderSuccess />}
+
+            <ConfirmModal
+                isOpen={isConfirmOpen}
+                title="Confirm Order"
+                message={`Are you sure you want to place this order? Total: ${formatCurrency(total)}`}
+                confirmText="Place Order"
+                cancelText="Keep Ordering"
+                onConfirm={handleConfirmOrder}
+                onCancel={() => setIsConfirmOpen(false)}
+            />
 
             {/* Header */}
             <div className="px-6 pt-8 pb-2 flex justify-between items-end">
@@ -111,9 +129,8 @@ export default function OrderPage({ params }: { params: Promise<{ tableId: strin
                 itemCount={itemCount}
                 total={total}
                 onViewCart={() => {
-                    if (confirm("Confirm place order?")) {
-                        setShowSuccess(true);
-                        setTimeout(() => setShowSuccess(false), 3000);
+                    if (itemCount > 0) {
+                        setIsConfirmOpen(true);
                     }
                 }}
             />
