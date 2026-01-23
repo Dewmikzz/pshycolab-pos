@@ -18,6 +18,7 @@ export function OrderPanel() {
     const [showPayment, setShowPayment] = useState(false);
     const [showMoveTable, setShowMoveTable] = useState(false);
     const [showDiscount, setShowDiscount] = useState(false);
+    const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
     const currentOrder = orders[activeTableId];
     const items = currentOrder?.items || [];
@@ -163,65 +164,78 @@ export function OrderPanel() {
                         <motion.div
                             layout
                             key={item.cartItemId || item.id}
-                            className="bg-pos-bg p-3 rounded-xl border border-pos-border/50 flex flex-col gap-2"
+                            onClick={() => setExpandedItemId(expandedItemId === item.cartItemId ? null : item.cartItemId)}
+                            className={`p-3 rounded-xl border flex flex-col gap-2 cursor-pointer transition-colors ${expandedItemId === item.cartItemId
+                                    ? "bg-pos-panel border-pos-accent/50"
+                                    : "bg-transparent border-transparent hover:bg-pos-panel/50"
+                                }`}
                         >
                             <div className="flex justify-between items-start">
-                                <div className="w-2/3">
-                                    <div className="flex items-center gap-2">
-                                        <span className={`font-medium line-clamp-2 ${item.status === 'sent' ? 'text-pos-text-secondary' : 'text-white'}`}>
+                                <div className="flex-1">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-pos-accent font-bold text-sm min-w-[1.5rem]">{item.quantity}x</span>
+                                        <span className={`font-medium ${item.status === 'sent' ? 'text-pos-text-secondary' : 'text-white'}`}>
                                             {item.name}
                                         </span>
+                                    </div>
+
+                                    {/* Status Badges */}
+                                    <div className="flex gap-1 ml-8 mt-1">
                                         {item.status === 'sent' && (
-                                            <span className="text-[10px] bg-green-500/10 text-green-500 px-1.5 py-0.5 rounded border border-green-500/20 uppercase font-bold">
+                                            <span className="text-[10px] text-green-500 font-bold uppercase tracking-wider">
                                                 Sent
                                             </span>
                                         )}
                                         {item.status === 'pending' && (
-                                            <span className="text-[10px] bg-yellow-500/10 text-yellow-500 px-1.5 py-0.5 rounded border border-yellow-500/20 uppercase font-bold">
+                                            <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-wider">
                                                 New
                                             </span>
                                         )}
                                     </div>
-                                    {/* Modifiers Display */}
+
+                                    {/* Modifiers Display - Minimal text */}
                                     {item.selectedModifiers && Object.values(item.selectedModifiers).flat().length > 0 && (
-                                        <div className="text-xs text-pos-text-secondary mt-1 flex flex-wrap gap-1">
-                                            {Object.values(item.selectedModifiers).flat().map((mod, i) => (
-                                                <span key={i} className="bg-pos-panel px-1.5 py-0.5 rounded border border-pos-border">
-                                                    {mod.label}
-                                                </span>
-                                            ))}
+                                        <div className="text-xs text-pos-text-secondary ml-8 mt-0.5">
+                                            {Object.values(item.selectedModifiers).flat().map(m => m.label).join(", ")}
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex flex-col items-end">
-                                    <span className="font-bold text-white">{formatCurrency(item.price * item.quantity)}</span>
-                                    {/* Show unit price if modded? Maybe overkill for now */}
-                                </div>
+
+                                <span className="font-bold text-white text-sm whitespace-nowrap ml-4">
+                                    {formatCurrency(item.price * item.quantity)}
+                                </span>
                             </div>
 
-                            <div className="flex justify-between items-center text-sm">
-                                <div className="flex items-center gap-3 bg-pos-panel rounded-lg p-1 border border-pos-border">
-                                    <button
-                                        onClick={() => updateQuantity(item.cartItemId || item.id, -1)}
-                                        className="w-8 h-8 flex items-center justify-center rounded bg-pos-bg hover:bg-white hover:text-black transition-colors"
-                                    >
-                                        -
-                                    </button>
-                                    <span className="font-bold w-4 text-center text-white">{item.quantity}</span>
-                                    <button
-                                        onClick={() => updateQuantity(item.cartItemId || item.id, 1)}
-                                        className="w-8 h-8 flex items-center justify-center rounded bg-pos-bg hover:bg-white hover:text-black transition-colors"
-                                    >
-                                        +
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={() => removeFromOrder(item.cartItemId || item.id)}
-                                    className="text-red-500 p-2 hover:bg-red-500/20 rounded transition-colors"
+                            {/* Expanded Controls */}
+                            {expandedItemId === item.cartItemId && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    className="flex justify-between items-center pt-2 border-t border-pos-border/50 mt-1 ml-8"
                                 >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); updateQuantity(item.cartItemId || item.id, -1); }}
+                                            className="w-8 h-8 flex items-center justify-center rounded bg-pos-bg hover:bg-white hover:text-black transition-colors border border-pos-border"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="font-bold text-white w-4 text-center">{item.quantity}</span>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); updateQuantity(item.cartItemId || item.id, 1); }}
+                                            className="w-8 h-8 flex items-center justify-center rounded bg-pos-bg hover:bg-white hover:text-black transition-colors border border-pos-border"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); removeFromOrder(item.cartItemId || item.id); }}
+                                        className="text-red-500 p-2 hover:bg-red-500/20 rounded transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </motion.div>
+                            )}
                         </motion.div>
                     ))
                 )}

@@ -3,15 +3,18 @@
 import { TopBar } from "./TopBar";
 import { OrderPanel } from "./OrderPanel";
 import { ProductGrid } from "./ProductGrid";
+import { TablesGrid } from "./TablesGrid";
+import { usePosStore } from "@/store/usePosStore";
 
 export function PosLayout() {
+    const { viewMode } = usePosStore();
     return (
         <div className="flex flex-col h-full w-full bg-pos-bg overflow-hidden">
             <TopBar />
             <div className="flex-1 flex overflow-hidden">
                 {/* Product Grid on Left (Flexible) */}
                 <div className="flex-1 overflow-hidden relative border-r border-pos-border order-first">
-                    <ProductGrid />
+                    {viewMode === 'tables' ? <TablesGrid /> : <ProductGrid />}
                 </div>
 
                 {/* Order Panel on Right (Fixed Width) */}

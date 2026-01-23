@@ -4,11 +4,13 @@ import { subscribeToOrders, updateOrderItems, clearTableOrder, subscribeToTables
 
 interface PosState {
     activeTableId: string;
+    viewMode: 'tables' | 'order';
     orders: Record<string, Order>; // Synced from Firebase
     tables: Table[];
 
     // Actions
     setActiveTable: (id: string) => void;
+    setViewMode: (mode: 'tables' | 'order') => void;
     initializeSubscription: () => () => void; // Returns unsubscribe function
 
     // Async Actions (that update Firebase)
@@ -23,10 +25,12 @@ interface PosState {
 
 export const usePosStore = create<PosState>((set, get) => ({
     activeTableId: "1",
+    viewMode: 'tables', // Default to tables view
     orders: {},
     tables: [],
 
-    setActiveTable: (id) => set({ activeTableId: id }),
+    setActiveTable: (id) => set({ activeTableId: id, viewMode: 'order' }), // Auto switch to order mode
+    setViewMode: (mode) => set({ viewMode: mode }),
 
     initializeSubscription: () => {
         const unsubscribeOrders = subscribeToOrders((orders) => {
