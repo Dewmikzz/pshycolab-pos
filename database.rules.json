@@ -1,0 +1,17 @@
+{
+    "rules": {
+        ".read": true,
+        ".write": true,
+        "shifts": {
+            ".indexOn": [
+                "status",
+                "openedAt"
+            ]
+        },
+        "receipts": {
+            ".indexOn": [
+                "timestamp"
+            ]
+        }
+    }
+}
