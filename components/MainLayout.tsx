@@ -2,6 +2,7 @@
 
 import { RadialMenu } from "./RadialMenu";
 import { LockScreen } from "./LockScreen";
+import { TopBar } from "./TopBar";
 import { usePathname } from "next/navigation";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -16,9 +17,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <div className="flex h-full w-full bg-pos-bg overflow-hidden relative">
             <LockScreen />
             <RadialMenu />
-            <main className="flex-1 h-full overflow-hidden w-full">
-                {children}
-            </main>
+            <div className="flex flex-col h-full w-full">
+                <TopBar />
+                <main className="flex-1 h-full overflow-hidden w-full relative">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }
