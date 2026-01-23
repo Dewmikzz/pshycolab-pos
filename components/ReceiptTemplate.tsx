@@ -10,7 +10,7 @@ interface ReceiptTemplateProps {
 }
 
 export function ReceiptTemplate({ receipt }: ReceiptTemplateProps) {
-    const { restaurant, printer } = useSettingsStore();
+    const { receiptSettings } = useSettingsStore();
 
     // Mock data for test print if no receipt provided
     const data = receipt || {
@@ -51,18 +51,18 @@ export function ReceiptTemplate({ receipt }: ReceiptTemplateProps) {
                         position: absolute;
                         left: 0;
                         top: 0;
-                        width: ${printer.paperWidth};
+                        width: 80mm;
                         padding: 5mm;
                     }
                 }
             `}</style>
-
             <div id="receipt-template">
                 {/* Header */}
                 <div className="text-center mb-4">
-                    <h1 className="text-xl font-bold uppercase">{restaurant.name}</h1>
-                    <p className="text-sm">{restaurant.address}</p>
-                    <p className="text-sm">{restaurant.phone}</p>
+                    <h1 className="text-xl font-bold uppercase">{receiptSettings.businessName}</h1>
+                    <p className="text-sm">{receiptSettings.addressLine1}</p>
+                    {receiptSettings.addressLine2 && <p className="text-sm">{receiptSettings.addressLine2}</p>}
+                    <p className="text-sm">{receiptSettings.contactPhone}</p>
                 </div>
 
                 {/* Info */}
@@ -138,7 +138,7 @@ export function ReceiptTemplate({ receipt }: ReceiptTemplateProps) {
 
                 {/* Footer */}
                 <div className="text-center text-sm">
-                    <p>{restaurant.footerMessage}</p>
+                    <p>{receiptSettings.footerMessage}</p>
                     <div className="mt-4 text-xs font-mono">
                         *** THANK YOU ***
                     </div>
