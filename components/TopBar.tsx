@@ -1,14 +1,22 @@
 "use client";
 
 import { usePosStore } from "@/store/usePosStore";
-import { ArrowLeft, LayoutGrid } from "lucide-react";
+import { ArrowLeft, LayoutGrid, X } from "lucide-react";
 
 export function TopBar() {
-    const { viewMode, activeTableId, setViewMode } = usePosStore();
+    const { viewMode, activeTableId, setViewMode, toggleMenu, isMenuOpen } = usePosStore();
 
     return (
         <div className="h-16 w-full bg-pos-panel border-b border-pos-border flex items-center px-6 justify-between shadow-md z-10 transition-all">
             <div className="flex items-center gap-4">
+                {/* Menu Trigger */}
+                <button
+                    onClick={toggleMenu}
+                    className="p-2 -ml-2 rounded-lg text-pos-text-secondary hover:text-white hover:bg-pos-bg transition-colors"
+                >
+                    {isMenuOpen ? <X size={28} /> : <LayoutGrid size={28} />}
+                </button>
+
                 {viewMode === 'order' ? (
                     <>
                         <button
@@ -23,7 +31,6 @@ export function TopBar() {
                     </>
                 ) : (
                     <div className="flex items-center gap-2 text-pos-accent">
-                        <LayoutGrid size={24} />
                         <h1 className="text-xl font-bold">POS Dashboard</h1>
                     </div>
                 )}

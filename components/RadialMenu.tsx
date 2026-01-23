@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ShoppingCart, Receipt, Clock, Menu as MenuIcon, Settings, Grip, X, LayoutGrid } from "lucide-react";
 import { clsx } from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { usePosStore } from "@/store/usePosStore";
 
 const NAV_ITEMS = [
     { id: "sales", label: "Sales", icon: ShoppingCart, path: "/sales" },
@@ -17,120 +17,100 @@ const NAV_ITEMS = [
 export function RadialMenu() {
     const pathname = usePathname();
     const router = useRouter();
-    const [isOpen, setIsOpen] = useState(false);
+    const { isMenuOpen, setMenuOpen } = usePosStore();
 
-    const toggleMenu = () => setIsOpen(!isOpen);
-
-    // Animation Config
-    // Fan out from Bottom-Left (Angle 0 to 90 degrees)
-    const radius = 140; // Pixel distance from corner
+    // Large Semi-Circle Config (Centered on Left Edge)
+    const radius = 220; // Increased radius for tablet
+    const totalItems = NAV_ITEMS.length;
+    // Spread from -60 degrees (top) to +60 degrees (bottom)
+    const startAngle = -60;
+    const endAngle = 60;
 
     return (
-        <>
-            {/* Backdrop Blur Overlay */}
-            <AnimatePresence>
-                {isOpen && (
+        <AnimatePresence>
+            {isMenuOpen && (
+                <>
+                    {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={() => setIsOpen(false)}
-                        className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm"
+                        onClick={() => setMenuOpen(false)}
+                        className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-md"
                     />
-                )}
-            </AnimatePresence>
 
-            {/* Menu Container */}
-            <div className="fixed bottom-6 left-6 z-[100] flex items-end">
+                    {/* Menu Container - Centered Vertically on Left Edge */}
+                    <div className="fixed top-1/2 left-0 -translate-y-1/2 z-[100] w-0 h-0">
+                        {NAV_ITEMS.map((item, index) => {
+                            // Calculate angle
+                            const angleStep = (endAngle - startAngle) / (totalItems - 1);
+                            const angleDeg = startAngle + (index * angleStep);
+                            const angleRad = (angleDeg * Math.PI) / 180;
 
-                {/* Trigger Button (4 dots / Grid) */}
-                <motion.button
-                    onClick={toggleMenu}
-                    className={clsx(
-                        "w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-colors relative z-[101]",
-                        isOpen ? "bg-red-500 text-white" : "bg-pos-accent text-white hover:brightness-110"
-                    )}
-                    whileTap={{ scale: 0.9 }}
-                    animate={{ rotate: isOpen ? 180 : 0 }}
-                >
-                    {isOpen ? <X size={32} /> : <LayoutGrid size={32} />}
-                </motion.button>
+                            // X is cos (right), Y is sin (down)
+                            // Since we are on left edge, X goes positive (right)
+                            const x = Math.round(radius * Math.cos(angleRad));
+                            const y = Math.round(radius * Math.sin(angleRad));
 
-                {/* Radial Items */}
-                <AnimatePresence>
-                    {isOpen && (
-                        <div className="absolute bottom-0 left-0 w-0 h-0">
-                            {NAV_ITEMS.map((item, index) => {
-                                // Calculate position on arc (0 to 90 degrees)
-                                // We have 5 items. Let's spread them from 10 deg to 80 deg.
-                                const totalItems = NAV_ITEMS.length;
-                                const startAngle = 10;
-                                const endAngle = 80;
-                                const angleStep = (endAngle - startAngle) / (totalItems - 1);
-                                const angleDeg = startAngle + (index * angleStep);
-                                const angleRad = (angleDeg * Math.PI) / 180;
+                            const isActive = pathname.startsWith(item.path);
 
-                                // X is cos, Y is sin (negative because up)
-                                const x = Math.round(radius * Math.cos(angleRad));
-                                const y = -Math.round(radius * Math.sin(angleRad));
-
-                                const isActive = pathname.startsWith(item.path);
-
-                                return (
-                                    <motion.div
-                                        key={item.id}
-                                        initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-                                        animate={{
-                                            x: x,
-                                            y: y,
-                                            opacity: 1,
-                                            scale: 1,
-                                            transition: {
-                                                type: "spring",
-                                                stiffness: 300,
-                                                damping: 20,
-                                                delay: index * 0.05
-                                            }
+                            return (
+                                <motion.div
+                                    key={item.id}
+                                    initial={{ x: -100, y: 0, opacity: 0, scale: 0.5 }}
+                                    animate={{
+                                        x: x,
+                                        y: y,
+                                        opacity: 1,
+                                        scale: 1,
+                                        transition: {
+                                            type: "spring",
+                                            stiffness: 400,
+                                            damping: 25,
+                                            delay: index * 0.05
+                                        }
+                                    }}
+                                    exit={{
+                                        x: -100,
+                                        y: y,
+                                        opacity: 0,
+                                        scale: 0.5,
+                                        transition: { duration: 0.2 }
+                                    }}
+                                    className="absolute"
+                                    style={{ transform: 'translate(-50%, -50%)' }}
+                                >
+                                    <button
+                                        onClick={() => {
+                                            router.push(item.path);
+                                            setMenuOpen(false);
                                         }}
-                                        exit={{
-                                            x: 0,
-                                            y: 0,
-                                            opacity: 0,
-                                            scale: 0,
-                                            transition: { duration: 0.2 }
-                                        }}
-                                        className="absolute left-2 bottom-2" // Start from center of button approx
+                                        className={clsx(
+                                            "flex flex-col items-center gap-2 group outline-none",
+                                            isActive ? "text-pos-accent" : "text-white"
+                                        )}
                                     >
-                                        <div className="flex flex-col items-center gap-2 group">
-                                            <motion.button
-                                                onClick={() => {
-                                                    router.push(item.path);
-                                                    setIsOpen(false);
-                                                }}
-                                                className={clsx(
-                                                    "w-14 h-14 rounded-full flex items-center justify-center shadow-xl border-2 transition-colors",
-                                                    isActive
-                                                        ? "bg-pos-accent border-white text-white"
-                                                        : "bg-pos-panel border-pos-border text-pos-text-secondary hover:text-white hover:border-pos-accent"
-                                                )}
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                <item.icon size={24} />
-                                            </motion.button>
-                                            <motion.span
-                                                className="absolute -bottom-6 text-xs font-bold text-white whitespace-nowrap bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                {item.label}
-                                            </motion.span>
+                                        <div className={clsx(
+                                            "w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-300",
+                                            isActive
+                                                ? "bg-pos-accent text-white shadow-pos-accent/50 scale-110"
+                                                : "bg-pos-panel border border-pos-border text-pos-text-secondary group-hover:bg-pos-accent group-hover:text-white group-hover:border-pos-accent group-hover:scale-110"
+                                        )}>
+                                            <item.icon size={36} />
                                         </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </AnimatePresence>
-            </div>
-        </>
+                                        <span className={clsx(
+                                            "text-lg font-bold tracking-wide transition-colors uppercase bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm",
+                                            isActive ? "text-pos-accent bg-black/60" : "text-white/80 group-hover:text-white"
+                                        )}>
+                                            {item.label}
+                                        </span>
+                                    </button>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
+        </AnimatePresence>
     );
 }
