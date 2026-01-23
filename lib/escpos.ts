@@ -1,62 +1,64 @@
 export class EscPosEncoder {
     private buffer: number[] = [];
 
-    constructor() {
-        this.initialize();
+    public initialize(): this {
+        this.buffer.push(0x1B, 0x40); // ESC @
+        return this;
     }
 
-    private initialize() {
-        this.buffer.push(0x1B, 0x40); // ESC @ (Initialize)
-    }
-
-    text(text: string) {
-        // Simple encoding, assume ASCII for now
-        // For Unicode/Thai/Chinese later we might need specific code pages or iconv
-        for (let i = 0; i < text.length; i++) {
-            this.buffer.push(text.charCodeAt(i));
+    public text(content: string): this {
+        // Simple encoding, assuming ASCII/UTF-8 compatible for basic chars
+        for (let i = 0; i < content.length; i++) {
+            this.buffer.push(content.charCodeAt(i));
         }
         return this;
     }
 
-    newline() {
-        this.buffer.push(0x0A);
+    public newline(): this {
+        this.buffer.push(0x0A); // LF
         return this;
     }
 
-    align(align: 'left' | 'center' | 'right') {
-        this.buffer.push(0x1B, 0x61);
-        if (align === 'center') this.buffer.push(1);
-        else if (align === 'right') this.buffer.push(2);
-        else this.buffer.push(0);
+    public feed(lines: number = 1): this {
+        for (let i = 0; i < lines; i++) {
+            this.buffer.push(0x0A);
+        }
         return this;
     }
 
-    bold(enable: boolean) {
-        this.buffer.push(0x1B, 0x45, enable ? 1 : 0);
+    public align(alignment: 'left' | 'center' | 'right'): this {
+        this.buffer.push(0x1B, 0x61); // ESC a
+        if (alignment === 'center') this.buffer.push(1);
+        else if (alignment === 'right') this.buffer.push(2);
+        else this.buffer.push(0); // left
         return this;
     }
 
-    size(width: number, height: number) {
+    public bold(enable: boolean): this {
+        this.buffer.push(0x1B, 0x45, enable ? 1 : 0); // ESC E n
+        return this;
+    }
+
+    public size(width: number, height: number): this {
         // GS ! n
-        // 0-7 for width/height
-        // width << 4 | height
-        const n = ((width - 1) << 4) | (height - 1);
+        // Width: 0-7 (1-8x), Height: 0-7 (1-8x)
+        // Byte = (width << 4) | height
+        const n = ((width & 0x07) << 4) | (height & 0x07);
         this.buffer.push(0x1D, 0x21, n);
         return this;
     }
 
-    cut() {
-        this.buffer.push(0x1D, 0x56, 66, 0); // GS V B 0 (Feeds paper & cut)
+    public cut(): this {
+        this.buffer.push(0x1D, 0x56, 66, 0); // GS V B 0 (Partial cut)
         return this;
     }
 
-    // Cash Drawer Kick
-    cashDrawer() {
-        this.buffer.push(0x1B, 0x70, 0, 25, 250); // ESC p 0 t1 t2
+    public cashDrawer(): this {
+        this.buffer.push(0x1B, 0x70, 0, 25, 250); // Pulse to pin 2 (standard)
         return this;
     }
 
-    encode(): Uint8Array {
+    public encode(): Uint8Array {
         return new Uint8Array(this.buffer);
     }
 }

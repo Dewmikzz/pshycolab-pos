@@ -2,6 +2,7 @@
 
 import { usePosStore } from "@/store/usePosStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import { formatCurrency, roundToNearestFiveCents, calculateRoundingAdjustment } from "@/lib/utils";
 import { Trash2, AlertCircle, ArrowRightLeft, Percent, Wallet, PauseCircle, XCircle, Printer } from "lucide-react";
 import { clsx } from "clsx";
@@ -16,6 +17,7 @@ import { Send } from "lucide-react";
 
 export function OrderPanel() {
     const { activeTableId, orders, removeFromOrder, updateQuantity, clearOrder, sendToKitchen } = usePosStore();
+    const { addNotification } = useNotificationStore();
     const [showPayment, setShowPayment] = useState(false);
     const [showMoveTable, setShowMoveTable] = useState(false);
     const [showDiscount, setShowDiscount] = useState(false);
@@ -44,12 +46,14 @@ export function OrderPanel() {
 
         setIsPrinting(true);
         const { receiptSettings, printers } = useSettingsStore.getState();
-
-        // 1. Try to find a MAIN printer for silent printing
         const mainPrinter = printers.find(p => p.type === 'main');
 
+        let mainPrintSuccess = false;
+
+        // 1. MAIN PRINTER (Bill)
         if (mainPrinter) {
             try {
+                addNotification('info', `Printing Bill to ${mainPrinter.name}...`);
                 const receiptData = {
                     businessName: receiptSettings.businessName,
                     addressLine1: receiptSettings.addressLine1,
@@ -65,37 +69,79 @@ export function OrderPanel() {
                     total: finalTotal
                 };
 
-                const response = await fetch('/api/print', {
+                const res = await fetch('/api/print', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        printer: mainPrinter,
-                        data: receiptData
-                    })
+                    body: JSON.stringify({ action: 'print', printer: mainPrinter, data: receiptData })
                 });
-
-                const result = await response.json();
+                const result = await res.json();
 
                 if (result.success) {
-                    setIsPrinting(false);
-                    return; // Success! No need to open window.
+                    mainPrintSuccess = true;
+                    addNotification('success', "Bill Printed Successfully");
                 } else {
-                    console.warn("Silent print failed, falling back to browser:", result.error);
+                    addNotification('error', `Main Print Failed: ${result.error}`);
                 }
             } catch (error) {
-                console.error("Silent print network error:", error);
+                addNotification('error', "Main Printer Connection Error");
+                console.error(error);
             }
         }
 
-        // 2. Fallback to Browser Print
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            alert("Please allow popups to print.");
-            setIsPrinting(false);
-            return;
+        // 2. KITCHEN / BAR PRINTERS (Orders)
+        // We iterate through all other printers to see if we have items for them
+        const orderPrinters = printers.filter(p => p.type !== 'main');
+
+        for (const printer of orderPrinters) {
+            // Filter items for this printer
+            const printerCategories = printer.categories || [];
+            if (printerCategories.length === 0) continue; // No categories assigned, skip
+
+            const itemsForPrinter = items.filter(item => printerCategories.includes(item.category));
+
+            if (itemsForPrinter.length > 0) {
+                try {
+                    addNotification('info', `Sending to ${printer.name}...`);
+                    const orderData = {
+                        tableId: activeTableId,
+                        items: itemsForPrinter
+                        // No need for totals/prices usually
+                    };
+
+                    const res = await fetch('/api/print', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'print', printer: printer, data: orderData })
+                    });
+                    const result = await res.json();
+
+                    if (result.success) {
+                        addNotification('success', `Sent to ${printer.name}`);
+                    } else {
+                        addNotification('error', `${printer.name} Failed: ${result.error}`);
+                    }
+
+                } catch (e) {
+                    addNotification('error', `${printer.name} Connection Error`);
+                }
+            }
         }
 
-        const html = `
+        // 3. Fallback / Browser Print Logic
+        if (!mainPrinter && !mainPrintSuccess) {
+            // Only open system dialog if Main Printer wasn't attempted or failed?
+            // User requested "Notification" system, so usually silent failure is preferred with toast.
+            // But if they have NO printer setup, we should probably still pop the window.
+
+            if (!mainPrinter) {
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    addNotification('error', "Please allow popups to print.");
+                    setIsPrinting(false);
+                    return;
+                }
+
+                const html = `
             <html>
                 <head>
                     <title>Bill - Table ${activeTableId}</title>
@@ -178,8 +224,11 @@ export function OrderPanel() {
             </html>
         `;
 
-        printWindow.document.write(html);
-        printWindow.document.close();
+                printWindow.document.write(html);
+                printWindow.document.close();
+            }
+        }
+
         setIsPrinting(false);
     };
 
@@ -212,10 +261,10 @@ export function OrderPanel() {
                             // Clear Order
                             clearOrder(activeTableId);
                             setShowPayment(false);
-                            alert("Payment Complete & Saved!");
+                            addNotification('success', "Payment Complete & Saved!");
                         } catch (error: any) {
                             console.error("Payment Error:", error);
-                            alert(`Payment Failed: ${error.message || "Unknown error"}`);
+                            addNotification('error', `Payment Failed: ${error.message || "Unknown error"}`);
                         }
                     }}
                 />
@@ -259,10 +308,10 @@ export function OrderPanel() {
                             // Clear Order
                             clearOrder(activeTableId);
                             setShowPayment(false);
-                            alert("Payment Complete & Saved!");
+                            addNotification('success', "Payment Complete & Saved!");
                         } catch (error: any) {
                             console.error("Payment Error:", error);
-                            alert(`Payment Failed: ${error.message || "Unknown error"}`);
+                            addNotification('error', `Payment Failed: ${error.message || "Unknown error"}`);
                         }
                     }}
                 />

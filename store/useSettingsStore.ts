@@ -13,9 +13,11 @@ export interface PrinterConfig {
     id: string;
     name: string;
     type: 'main' | 'kitchen' | 'bar';
-    connection: 'lan' | 'ip'; // Both use IP logic in backend, mainly for labeling
+    connection: 'lan' | 'ip';
     ip: string;
     port: number;
+    categories?: string[]; // IDs of categories this printer handles
+    isSplitTicket?: boolean; // If true, print 1 ticket per item (quantity loop)
 }
 
 interface SettingsState {

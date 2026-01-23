@@ -45,20 +45,20 @@ export function TokenGuard({ tableId, children }: { tableId: string, children: R
 
     if (isValid === null) {
         return (
-            <div className="h-screen w-full bg-black flex items-center justify-center text-white">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            <div className="h-screen w-full bg-gray-50 flex items-center justify-center text-slate-900">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
             </div>
         );
     }
 
     if (!isValid) {
         return (
-            <div className="h-screen w-full bg-black flex flex-col items-center justify-center text-white p-8 text-center">
-                <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-6">
-                    <Lock size={32} />
+            <div className="h-screen w-full bg-gray-50 flex flex-col items-center justify-center text-slate-900 p-8 text-center">
+                <div className="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-red-500/10">
+                    <Lock size={36} />
                 </div>
-                <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-                <p className="text-gray-400">This QR code is invalid or expired. Please scan the latest code from your table.</p>
+                <h1 className="text-3xl font-black mb-2 text-slate-800">Access Denied</h1>
+                <p className="text-slate-500">This QR code is invalid or expired. Please scan the latest code from your table.</p>
             </div>
         );
     }

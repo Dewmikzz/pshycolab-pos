@@ -1,7 +1,7 @@
 "use client";
 
 import { usePosStore } from "@/store/usePosStore";
-import { ArrowLeft, LayoutGrid, X } from "lucide-react";
+import { ArrowLeft, LayoutGrid, X, Bell } from "lucide-react";
 
 export function TopBar() {
     const { viewMode, activeTableId, setViewMode, toggleMenu, isMenuOpen } = usePosStore();
@@ -37,7 +37,11 @@ export function TopBar() {
             </div>
 
             <div className="flex items-center gap-4">
-                {/* Right side items (e.g. Current Time, User Profile - placeholders) */}
+                {/* Right side items */}
+                <button className="p-2 text-pos-text-secondary hover:text-white relative">
+                    <Bell size={24} />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
                 <div className="text-pos-text-secondary font-medium">
                     {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>

@@ -242,10 +242,18 @@ export default function SettingsPage() {
                                                 </div>
                                                 <div>
                                                     <h3 className="font-bold text-white">{printer.name}</h3>
-                                                    <div className="flex gap-2 text-xs text-pos-text-secondary">
-                                                        <span className="uppercase bg-white/5 px-2 py-0.5 rounded">{printer.type}</span>
-                                                        <span className="uppercase bg-white/5 px-2 py-0.5 rounded">{printer.connection}</span>
-                                                        <span>{printer.ip}:{printer.port}</span>
+                                                    <div className="flex flex-wrap gap-2 text-xs text-pos-text-secondary mt-1">
+                                                        <span className="uppercase bg-white/5 px-2 py-0.5 rounded border border-white/10">{printer.type}</span>
+                                                        <span className="uppercase bg-white/5 px-2 py-0.5 rounded border border-white/10">{printer.connection}</span>
+                                                        <span className="font-mono bg-black/20 px-2 py-0.5 rounded">{printer.ip}:{printer.port}</span>
+                                                        {printer.categories && printer.categories.length > 0 && (
+                                                            <span className="bg-pos-accent/20 text-pos-accent px-2 py-0.5 rounded flex items-center gap-1">
+                                                                {printer.categories.length} Cats
+                                                            </span>
+                                                        )}
+                                                        {printer.isSplitTicket && (
+                                                            <span className="bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded">Split</span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -329,6 +337,63 @@ export default function SettingsPage() {
                                                         placeholder="9100"
                                                     />
                                                 </div>
+                                            </div>
+
+                                            {/* Advanced Settings for Kitchen/Bar */}
+                                            {printerForm.type !== 'main' && (
+                                                <div className="p-4 bg-pos-bg rounded-lg border border-pos-border space-y-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-sm font-bold text-white">Item Splitting</span>
+                                                        <button
+                                                            onClick={() => setPrinterForm({ ...printerForm, isSplitTicket: !printerForm.isSplitTicket })}
+                                                            className={`w-12 h-6 rounded-full p-1 transition-colors ${printerForm.isSplitTicket ? 'bg-pos-accent' : 'bg-pos-border'}`}
+                                                        >
+                                                            <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${printerForm.isSplitTicket ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-xs text-pos-text-secondary">If enabled, prints one ticket per item quantity (e.g. 2 Burgers = 2 Tickets).</p>
+
+                                                    <div className="flex flex-col gap-2">
+                                                        <label className="text-sm text-pos-text-secondary">Categories</label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {['food', 'beverage', 'dessert'].map(cat => (
+                                                                <button
+                                                                    key={cat}
+                                                                    onClick={() => {
+                                                                        const current = printerForm.categories || [];
+                                                                        const updated = current.includes(cat)
+                                                                            ? current.filter(c => c !== cat)
+                                                                            : [...current, cat];
+                                                                        setPrinterForm({ ...printerForm, categories: updated });
+                                                                    }}
+                                                                    className={`px-3 py-1 rounded-full text-xs font-bold border ${printerForm.categories?.includes(cat) ? 'bg-pos-accent border-pos-accent text-white' : 'border-pos-border text-pos-text-secondary hover:text-white'}`}
+                                                                >
+                                                                    {cat.toUpperCase()}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-xs text-pos-text-secondary">Select categories routed to this printer.</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="pt-2">
+                                                <button
+                                                    onClick={() => {
+                                                        const testToast = window.confirm("Send test print command to " + printerForm.ip + "?");
+                                                        if (testToast) {
+                                                            fetch('/api/print', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ action: 'test', printer: printerForm })
+                                                            }).then(() => alert("Test Sent")).catch(e => alert("Error: " + e));
+                                                        }
+                                                    }}
+                                                    className="w-full py-2 bg-pos-text-secondary/10 hover:bg-pos-text-secondary/20 text-pos-text-secondary rounded-lg text-sm font-bold flex items-center justify-center gap-2"
+                                                >
+                                                    <Printer size={16} />
+                                                    Test Connection
+                                                </button>
                                             </div>
                                         </div>
 
