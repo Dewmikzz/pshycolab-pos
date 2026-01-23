@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatedSidebar } from "./AnimatedSidebar";
+import { RadialMenu } from "./RadialMenu";
 import { usePathname } from "next/navigation";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -12,8 +12,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     }
 
     return (
-        <div className="flex h-full w-full bg-pos-bg overflow-hidden">
-            <AnimatedSidebar />
+        <div className="flex h-full w-full bg-pos-bg overflow-hidden relative">
+            <RadialMenu />
             <main className="flex-1 h-full overflow-hidden w-full">
                 {children}
             </main>
