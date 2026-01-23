@@ -33,12 +33,14 @@ export interface CartItem extends Product {
     cartItemId: string; // Unique ID for this line item (to distinguish variants)
     quantity: number;
     selectedModifiers?: { [groupId: string]: ModifierOption[] }; // Store full option details to preserve price
+    status?: 'pending' | 'sent'; // POS staging status
 }
 
 export interface Order {
     tableId: string;
     items: CartItem[];
     subtotal: number;
+    discount?: number; // Discount amount
     tax: number;
     total: number;
     status: 'pending' | 'cooking' | 'ready' | 'served' | 'paid';
@@ -51,6 +53,7 @@ export interface Receipt {
     tableId: string;
     items: CartItem[];
     subtotal: number;
+    discount?: number;
     tax: number;
     rounding: number;
     total: number;

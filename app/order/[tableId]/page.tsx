@@ -38,7 +38,7 @@ export default function OrderPage({ params }: { params: Promise<{ tableId: strin
     const handleAddToOrder = (product: Product, quantity: number) => {
         setActiveTable(resolvedParams.tableId); // Set context
         for (let i = 0; i < quantity; i++) {
-            addToOrder(product);
+            addToOrder(product, {}, 'sent');
         }
     };
 

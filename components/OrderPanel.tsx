@@ -7,20 +7,30 @@ import { clsx } from "clsx";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { PaymentModal } from "./PaymentModal";
+import { MoveTableModal } from "./MoveTableModal";
+import { DiscountModal } from "./DiscountModal";
 import { addReceipt } from "@/services/receiptService";
 import { addShiftTransaction } from "@/services/shiftService";
+import { Send } from "lucide-react";
 
 export function OrderPanel() {
-    const { activeTableId, orders, removeFromOrder, updateQuantity, clearOrder } = usePosStore();
+    const { activeTableId, orders, removeFromOrder, updateQuantity, clearOrder, sendToKitchen } = usePosStore();
     const [showPayment, setShowPayment] = useState(false);
+    const [showMoveTable, setShowMoveTable] = useState(false);
+    const [showDiscount, setShowDiscount] = useState(false);
 
     const currentOrder = orders[activeTableId];
     const items = currentOrder?.items || [];
 
     // Calculations
     const rawSubtotal = currentOrder?.subtotal || 0;
+    const discount = currentOrder?.discount || 0;
+    const taxableAmount = Math.max(0, rawSubtotal - discount);
     const tax = currentOrder?.tax || 0;
-    const rawTotal = rawSubtotal + tax;
+    const rawTotal = taxableAmount + tax;
+
+    // Check for pending items
+    const hasPendingItems = items.some(i => i.status === 'pending');
 
     const roundingAdj = calculateRoundingAdjustment(rawTotal);
     const finalTotal = roundToNearestFiveCents(rawTotal);
@@ -62,6 +72,53 @@ export function OrderPanel() {
                     }}
                 />
             )}
+            {/* Modals */}
+            <MoveTableModal
+                isOpen={showMoveTable}
+                onClose={() => setShowMoveTable(false)}
+                currentTableId={activeTableId}
+            />
+            <DiscountModal
+                isOpen={showDiscount}
+                onClose={() => setShowDiscount(false)}
+                currentTotal={rawSubtotal}
+                currentDiscount={discount}
+            />
+            {showPayment && (
+                <PaymentModal
+                    total={finalTotal}
+                    onClose={() => setShowPayment(false)}
+                    onComplete={async (method, paidAmount) => {
+                        try {
+                            // Track Sales (All Methods)
+                            await addShiftTransaction(finalTotal, method);
+
+                            // Save Receipt
+                            await addReceipt({
+                                tableId: activeTableId,
+                                items: items,
+                                subtotal: rawSubtotal,
+                                discount: discount, // Add discount to receipt
+                                tax: tax,
+                                rounding: roundingAdj,
+                                total: finalTotal,
+                                paymentMethod: method,
+                                paidAmount: paidAmount,
+                                change: paidAmount - finalTotal,
+                                timestamp: Date.now()
+                            });
+
+                            // Clear Order
+                            clearOrder(activeTableId);
+                            setShowPayment(false);
+                            alert("Payment Complete & Saved!");
+                        } catch (error: any) {
+                            console.error("Payment Error:", error);
+                            alert(`Payment Failed: ${error.message || "Unknown error"}`);
+                        }
+                    }}
+                />
+            )}
 
             {/* Header */}
             <div className="p-4 border-b border-pos-border bg-pos-panel flex justify-between items-center">
@@ -76,10 +133,18 @@ export function OrderPanel() {
 
                 {/* Top Actions: Discount & Move */}
                 <div className="flex gap-2">
-                    <button className="p-2 bg-pos-bg rounded-lg text-pos-text-secondary hover:text-white hover:bg-pos-accent/20 transition-colors" title="Move Table">
+                    <button
+                        onClick={() => setShowMoveTable(true)}
+                        className="p-2 bg-pos-bg rounded-lg text-pos-text-secondary hover:text-white hover:bg-pos-accent/20 transition-colors"
+                        title="Move Table"
+                    >
                         <ArrowRightLeft size={18} />
                     </button>
-                    <button className="p-2 bg-pos-bg rounded-lg text-pos-text-secondary hover:text-white hover:bg-pos-accent/20 transition-colors" title="Add Discount">
+                    <button
+                        onClick={() => setShowDiscount(true)}
+                        className={`p-2 rounded-lg transition-colors ${discount > 0 ? 'bg-pos-accent text-white' : 'bg-pos-bg text-pos-text-secondary hover:text-white hover:bg-pos-accent/20'}`}
+                        title="Add Discount"
+                    >
                         <Percent size={18} />
                     </button>
                 </div>
@@ -102,7 +167,21 @@ export function OrderPanel() {
                         >
                             <div className="flex justify-between items-start">
                                 <div className="w-2/3">
-                                    <span className="font-medium text-white line-clamp-2">{item.name}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`font-medium line-clamp-2 ${item.status === 'sent' ? 'text-pos-text-secondary' : 'text-white'}`}>
+                                            {item.name}
+                                        </span>
+                                        {item.status === 'sent' && (
+                                            <span className="text-[10px] bg-green-500/10 text-green-500 px-1.5 py-0.5 rounded border border-green-500/20 uppercase font-bold">
+                                                Sent
+                                            </span>
+                                        )}
+                                        {item.status === 'pending' && (
+                                            <span className="text-[10px] bg-yellow-500/10 text-yellow-500 px-1.5 py-0.5 rounded border border-yellow-500/20 uppercase font-bold">
+                                                New
+                                            </span>
+                                        )}
+                                    </div>
                                     {/* Modifiers Display */}
                                     {item.selectedModifiers && Object.values(item.selectedModifiers).flat().length > 0 && (
                                         <div className="text-xs text-pos-text-secondary mt-1 flex flex-wrap gap-1">
@@ -154,6 +233,12 @@ export function OrderPanel() {
                     <span>Subtotal</span>
                     <span>{formatCurrency(rawSubtotal)}</span>
                 </div>
+                {discount > 0 && (
+                    <div className="flex justify-between text-pos-accent text-sm">
+                        <span>Discount</span>
+                        <span>-{formatCurrency(discount)}</span>
+                    </div>
+                )}
                 <div className="flex justify-between text-pos-text-secondary text-sm">
                     <span>Tax (5%)</span>
                     <span>{formatCurrency(tax)}</span>
@@ -168,26 +253,25 @@ export function OrderPanel() {
                 </div>
 
                 {/* Primary Actions */}
-                <div className="grid grid-cols-4 gap-2 h-14">
-                    <button
-                        className="col-span-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl flex flex-col items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-95"
-                        onClick={() => { if (confirm("Cancel entire order?")) clearOrder(activeTableId); }}
-                    >
-                        <XCircle size={20} />
-                        <span className="text-[10px] uppercase font-bold mt-1">Cancel</span>
-                    </button>
-                    <button className="col-span-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 rounded-xl flex flex-col items-center justify-center hover:bg-yellow-500 hover:text-black transition-all active:scale-95">
-                        <PauseCircle size={20} />
-                        <span className="text-[10px] uppercase font-bold mt-1">Hold</span>
-                    </button>
-                    <button
-                        onClick={() => setShowPayment(true)}
-                        disabled={items.length === 0}
-                        className="col-span-2 bg-pos-accent text-white rounded-xl flex items-center justify-center gap-2 font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-pos-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <Wallet size={24} />
-                        <span>PAY</span>
-                    </button>
+                <div className="grid grid-cols-1 gap-2 h-14">
+                    {items.length > 0 && hasPendingItems ? (
+                        <button
+                            onClick={() => sendToKitchen(activeTableId)}
+                            className="w-full bg-blue-600 text-white rounded-xl flex items-center justify-center gap-2 font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-blue-600/20"
+                        >
+                            <Send size={24} />
+                            <span>SEND TO KITCHEN</span>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => setShowPayment(true)}
+                            disabled={items.length === 0}
+                            className="w-full bg-pos-accent text-white rounded-xl flex items-center justify-center gap-2 font-bold text-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-pos-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Wallet size={24} />
+                            <span>PAY {formatCurrency(finalTotal)}</span>
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
