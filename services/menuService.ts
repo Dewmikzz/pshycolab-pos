@@ -92,6 +92,11 @@ export async function seedMenuData() {
         await update(ref(db), updates);
         console.log("Menu Seeded with missing data");
     }
+
+    // Also ensure tables exist
+    const { seedTables } = await import("@/services/orderService");
+    const { TABLES: MOCK_TABLES } = await import("@/data/mockData");
+    await seedTables(MOCK_TABLES);
 }
 
 export async function seedSriLankanData() {
@@ -101,6 +106,12 @@ export async function seedSriLankanData() {
     await remove(ref(db, "products"));
     await remove(ref(db, "categories"));
     await remove(ref(db, "modifierGroups"));
+    await remove(ref(db, "tables")); // Clear tables too for a full reset
+
+    // Seed tables
+    const { seedTables } = await import("@/services/orderService");
+    const { TABLES } = await import("@/data/mockData");
+    await seedTables(TABLES);
 
     const categories = [
         { label: "Rice & Curry 🍛", id: "cat_rc", modifierGroups: ["mg_spice"] },

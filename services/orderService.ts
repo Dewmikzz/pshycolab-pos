@@ -75,6 +75,10 @@ export async function clearTableOrder(tableId: string) {
 
 // One-time script to seed tables with tokens
 export async function seedTables(tables: { id: string, label: string }[]) {
+    // Check if tables already exist
+    const tablesSnap = await get(ref(db, "tables"));
+    if (tablesSnap.exists()) return;
+
     const updates: Record<string, any> = {};
     tables.forEach(t => {
         updates[`tables/${t.id}`] = {
