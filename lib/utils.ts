@@ -6,11 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number) {
-    return new Intl.NumberFormat("en-MY", {
+    return new Intl.NumberFormat("en-LK", {
         style: "currency",
-        currency: "MYR",
+        currency: "LKR",
         minimumFractionDigits: 2,
-    }).format(amount).replace("MYR", "RM");
+    }).format(amount).replace("LKR", "Rs");
 }
 
 export function roundToNearestFiveCents(amount: number): number {

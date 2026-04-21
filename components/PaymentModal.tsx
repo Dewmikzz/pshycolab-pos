@@ -103,7 +103,7 @@ export function PaymentModal({ total, onClose, onComplete }: PaymentModalProps) 
                                 <div className="p-4 bg-pos-panel rounded-2xl border border-pos-border mb-4 text-center">
                                     <span className="text-pos-text-secondary text-sm">Amount Received</span>
                                     <div className="text-4xl font-bold text-white mt-1">
-                                        {cashReceived ? `RM ${cashReceived}` : "RM 0.00"}
+                                        {cashReceived ? `Rs ${cashReceived}` : "Rs 0.00"}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
@@ -113,7 +113,7 @@ export function PaymentModal({ total, onClose, onComplete }: PaymentModalProps) 
                                             onClick={() => setCashReceived(amt.toFixed(2))}
                                             className="p-4 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl font-bold hover:bg-green-500 hover:text-white"
                                         >
-                                            RM {amt.toFixed(2)}
+                                            Rs {amt.toFixed(2)}
                                         </button>
                                     ))}
                                 </div>

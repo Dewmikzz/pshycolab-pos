@@ -78,7 +78,7 @@ export default function ShiftPage() {
 
                     <div className="space-y-4">
                         <div className="bg-pos-bg rounded-xl border border-pos-border p-4 flex items-center gap-4">
-                            <span className="font-bold text-pos-text-secondary">RM</span>
+                            <span className="font-bold text-pos-text-secondary">Rs</span>
                             <input
                                 type="number"
                                 value={startCashInput}
@@ -212,7 +212,7 @@ export default function ShiftPage() {
                         <div className="bg-pos-bg rounded-xl border border-pos-border p-6">
                             <label className="text-sm font-bold text-pos-text-secondary uppercase mb-2 block">Actual Cash Amount</label>
                             <div className="flex items-center gap-4">
-                                <span className="font-bold text-2xl text-white">RM</span>
+                                <span className="font-bold text-2xl text-white">Rs</span>
                                 <input
                                     type="number"
                                     autoFocus
