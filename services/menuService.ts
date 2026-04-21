@@ -94,19 +94,21 @@ export async function seedMenuData() {
     }
 }
 
-export async function seedMalaysianData() {
+export async function seedSriLankanData() {
     const updates: Record<string, any> = {};
 
-    // 1. Clear existing (optional, but safer to avoid clutter) - actually we'll just append basically or should we clear?
-    // User said "do the order menu again", implying a fresh start.
-    // But deleting might be dangerous. Let's just Add New Categories and Products.
-    // We will prefix IDs to track them if needed, but Firebase push keys are random.
+    // Clear existing menu data nodes to ensure a fresh Sri Lankan menu
+    await remove(ref(db, "products"));
+    await remove(ref(db, "categories"));
+    await remove(ref(db, "modifierGroups"));
 
     const categories = [
-        { label: "Nasi 🍚", id: "cat_nasi" },
-        { label: "Noodles 🍜", id: "cat_noodles" },
-        { label: "Sides 🍢", id: "cat_sides" },
-        { label: "Drinks 🥤", id: "cat_drinks" },
+        { label: "Rice & Curry 🍛", id: "cat_rc", modifierGroups: ["mg_spice"] },
+        { label: "Kottu 🥘", id: "cat_kottu", modifierGroups: ["mg_spice", "mg_kottu_extra"] },
+        { label: "Hoppers 🥞", id: "cat_hoppers", modifierGroups: ["mg_sides_sl"] },
+        { label: "Short Eats 🥟", id: "cat_short_eats" },
+        { label: "Beverages 🥤", id: "cat_beverages", modifierGroups: ["mg_sugar_sl"] },
+        { label: "Desserts 🍨", id: "cat_desserts" },
     ];
 
     categories.forEach(c => {
@@ -115,60 +117,95 @@ export async function seedMalaysianData() {
 
     const products = [
         {
-            name: "Nasi Lemak Royal",
-            price: 15.90,
-            category: "cat_nasi",
-            description: "Fragrant coconut rice served with crispy fried chicken, spicy sambal, crunchy anchovies, peanuts, and a perfectly boiled egg.",
-            image: "https://images.unsplash.com/photo-1574482620826-40685ca5ebd2?auto=format&fit=crop&w=800&q=80"
+            name: "Chicken Rice & Curry",
+            price: 550.00,
+            category: "cat_rc",
+            description: "Traditional Sri Lankan red rice served with chicken curry, dhal, two seasonal vegetables, sambol, and papadum.",
+            image: "https://images.unsplash.com/photo-1589302168068-9a4960d57bb8?auto=format&fit=crop&w=800&q=80"
         },
         {
-            name: "Nasi Goreng Kampung",
-            price: 12.50,
-            category: "cat_nasi",
-            description: "Traditional village-style fried rice with anchovies, water spinach (kangkung), and plenty of bird's eye chili.",
-            image: "https://images.unsplash.com/photo-1602088113235-229c19758e9f?auto=format&fit=crop&w=800&q=80"
+            name: "Fish Rice & Curry",
+            price: 480.00,
+            category: "cat_rc",
+            description: "Authentic white rice served with spicy fish ambul thiyal, dhal, kale mallum, and spicy coconut sambol.",
+            image: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80"
         },
         {
-            name: "Char Kway Teow",
-            price: 14.00,
-            category: "cat_noodles",
-            description: "Wok-fried flat rice noodles with prawns, cockles, chinese sausage, eggs, bean sprouts, and chives in a rich soy sauce.",
-            image: "https://images.unsplash.com/photo-1632549219018-ba20f862aa48?auto=format&fit=crop&w=800&q=80"
+            name: "Chicken Kottu (Large)",
+            price: 850.00,
+            category: "cat_kottu",
+            description: "Finely chopped godamba roti stir-fried with tender chicken, eggs, onions, leeks, and a rich gravy blend.",
+            image: "https://images.unsplash.com/photo-1630409351241-e90e7f5e434d?auto=format&fit=crop&w=800&q=80"
         },
         {
-            name: "Curry Mee",
-            price: 13.50,
-            category: "cat_noodles",
-            description: "Yellow noodles in a rich and spicy coconut milk curry broth with tofu puffs, cockles, and long beans.",
-            image: "https://images.unsplash.com/photo-1563290637-2938a1631e0c?auto=format&fit=crop&w=800&q=80"
+            name: "Cheese Chicken Kottu",
+            price: 1250.00,
+            category: "cat_kottu",
+            description: "Our signature chicken kottu creamy with melted Happy Cow cheese and extra spice. Local favorite!",
+            image: "https://images.unsplash.com/photo-1610192244261-3f33de3f55e4?auto=format&fit=crop&w=800&q=80"
         },
         {
-            name: "Satay Ayam (10 pcs)",
-            price: 18.00,
-            category: "cat_sides",
-            description: "Skewered and grilled chicken meat, marinated in spices, served with peanut sauce, cucumber, and onions.",
-            image: "https://images.unsplash.com/photo-1626804475297-411dbb166067?auto=format&fit=crop&w=800&q=80"
+            name: "Egg Hopper Set (3pcs)",
+            price: 250.00,
+            category: "cat_hoppers",
+            description: "One Egg Hopper and two Plain Hoppers, served fresh with spicy Lunu Miris.",
+            image: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80"
         },
         {
-            name: "Roti Canai w/ Curry",
-            price: 4.50,
-            category: "cat_sides",
-            description: "Crispy and fluffy flatbread served with distinct dhal and curry dipping sauces.",
-            image: "https://images.unsplash.com/photo-1625475653528-56ba772e04df?auto=format&fit=crop&w=800&q=80"
+            name: "String Hoppers Set (10pcs)",
+            price: 280.00,
+            category: "cat_hoppers",
+            description: "Freshly steamed red string hoppers served with coconut sodhi and spicy pol sambol.",
+            image: "https://images.unsplash.com/photo-1505253304499-671c55fb57fe?auto=format&fit=crop&w=800&q=80"
         },
         {
-            name: "Teh Tarik Kaw",
-            price: 4.50,
-            category: "cat_drinks",
-            description: "Malaysian pulled milk tea, thick, frothy and perfectly sweet.",
-            image: "https://images.unsplash.com/photo-1629007466851-9f933ac0273c?auto=format&fit=crop&w=800&q=80"
+            name: "Fish Cutlet (4pcs)",
+            price: 320.00,
+            category: "cat_short_eats",
+            description: "Spicy mackerel fish balls breaded and deep-fried to golden perfection. Best with tea!",
+            image: "https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=800&q=80"
         },
         {
-            name: "Sirap Bandung Soda",
-            price: 5.50,
-            category: "cat_drinks",
-            description: "Rose syrup milk drink with ice cream soda for a fizzy kick.",
-            image: "https://images.unsplash.com/photo-1624683074360-192c77d4c795?auto=format&fit=crop&w=800&q=80"
+            name: "Egg Roti",
+            price: 180.00,
+            category: "cat_short_eats",
+            description: "Soft griddle-cooked roti with a whole egg inside, served with a small side of dhal or gravy.",
+            image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+            name: "Ceylon Milk Tea",
+            price: 120.00,
+            category: "cat_beverages",
+            description: "Strongly brewed Ceylon BOP tea mixed with condensed milk. The nation's favorite.",
+            image: "https://images.unsplash.com/photo-1544787210-2211d7c3bc95?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+            name: "Ginger Beer (EGB)",
+            price: 220.00,
+            category: "cat_beverages",
+            description: "Classic Elephant House Ginger Beer. A spicy, carbonated local favorite.",
+            image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+            name: "Fresh Woodapple Juice",
+            price: 350.00,
+            category: "cat_beverages",
+            description: "Creamy, sweet and sour woodapple pulp blended with a hint of coconut milk and jaggery.",
+            image: "https://images.unsplash.com/photo-1621506289937-4c7260000a6c?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+            name: "Watalappam",
+            price: 450.00,
+            category: "cat_desserts",
+            description: "Rich, spiced coconut custard made with kithul jaggery, eggs, and cardamoms. Garnished with cashews.",
+            image: "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+            name: "Buffalo Curd & Treacle",
+            price: 380.00,
+            category: "cat_desserts",
+            description: "Creamy buffalo curd served in a clay pot with a generous drizzle of golden kithul treacle.",
+            image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80"
         }
     ];
 
@@ -177,6 +214,62 @@ export async function seedMalaysianData() {
         updates[`products/${id}`] = { ...p, id };
     });
 
+    // Add Sri Lankan Modifiers
+    const modifiers = [
+        {
+            id: "mg_spice",
+            label: "Spice Level",
+            selectionType: "single",
+            minSelection: 1,
+            maxSelection: 1,
+            options: [
+                { id: "sp_mild", label: "Mild", price: 0 },
+                { id: "sp_med", label: "Medium", price: 0 },
+                { id: "sp_hot", label: "Spicy", price: 0 },
+            ]
+        },
+        {
+            id: "mg_kottu_extra",
+            label: "Extras",
+            selectionType: "multiple",
+            minSelection: 0,
+            maxSelection: 3,
+            options: [
+                { id: "ex_cheese", label: "Extra Cheese", price: 250.00 },
+                { id: "ex_egg", label: "Extra Egg", price: 100.00 },
+                { id: "ex_gravy", label: "Extra Gravy", price: 50.00 },
+            ]
+        },
+        {
+            id: "mg_sugar_sl",
+            label: "Sugar Level",
+            selectionType: "single",
+            minSelection: 1,
+            maxSelection: 1,
+            options: [
+                { id: "s_no", label: "No Sugar", price: 0 },
+                { id: "s_less", label: "Less Sugar", price: 0 },
+                { id: "s_normal", label: "Normal Sugar", price: 0 },
+            ]
+        },
+        {
+            id: "mg_sides_sl",
+            label: "Sides",
+            selectionType: "multiple",
+            minSelection: 0,
+            maxSelection: 2,
+            options: [
+                { id: "sd_lunu", label: "Lunu Miris", price: 50.00 },
+                { id: "sd_seeni", label: "Seeni Sambol", price: 70.00 },
+                { id: "sd_dhal", label: "Dhal Curry", price: 150.00 },
+            ]
+        }
+    ];
+
+    modifiers.forEach(m => {
+        updates[`modifierGroups/${m.id}`] = m;
+    });
+
     await update(ref(db), updates);
-    console.log("Malaysian Menu Seeded!");
+    console.log("Sri Lankan Menu Seeded!");
 }

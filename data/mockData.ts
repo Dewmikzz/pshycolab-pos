@@ -2,82 +2,114 @@ import { Product, Table } from "@/types";
 
 export const TABLES: Table[] = [
     ...Array.from({ length: 16 }, (_, i) => ({ id: `${i + 1}`, label: `${i + 1}` })),
-    ...["1A", "2A", "3A", "10A"].map((label) => ({ id: label, label })),
+    ...["A1", "A2", "B1", "B2"].map((label) => ({ id: label, label })),
 ].sort((a, b) => {
     const numA = parseInt(a.id);
     const numB = parseInt(b.id);
+    if (isNaN(numA) || isNaN(numB)) return a.id.localeCompare(b.id);
     if (numA === numB) return a.id.localeCompare(b.id);
     return numA - numB;
 });
 
 export const PRODUCTS: Product[] = [
-    // Food
-    { id: "f1", name: "Classic Burger", price: 12.99, category: "Food" },
-    { id: "f2", name: "Cheese Burger", price: 13.99, category: "Food" },
-    { id: "f3", name: "Chicken Wings", price: 9.99, category: "Food" },
-    { id: "f4", name: "Caesar Salad", price: 10.50, category: "Food" },
-    { id: "f5", name: "Fries", price: 4.99, category: "Food" },
-    { id: "f6", name: "Steak", price: 24.99, category: "Food" },
-    { id: "f7", name: "Pasta Carbonara", price: 14.99, category: "Food" },
+    // Rice & Curry
+    { id: "rc1", name: "Chicken Rice & Curry", price: 550.00, category: "Rice & Curry" },
+    { id: "rc2", name: "Fish Rice & Curry", price: 480.00, category: "Rice & Curry" },
+    { id: "rc3", name: "Egg Rice & Curry", price: 420.00, category: "Rice & Curry" },
+    { id: "rc4", name: "Vegetable Rice & Curry", price: 350.00, category: "Rice & Curry" },
+    { id: "rc5", name: "Mutton Rice & Curry", price: 950.00, category: "Rice & Curry" },
 
-    // Drinks
-    { id: "d1", name: "Coke", price: 2.50, category: "Drinks" },
-    { id: "d2", name: "Water", price: 1.50, category: "Drinks" },
-    { id: "d3", name: "Iced Tea", price: 3.00, category: "Drinks" },
-    { id: "d4", name: "Lemonade", price: 3.50, category: "Drinks" },
-    { id: "d5", name: "Cold Brew", price: 4.50, category: "Drinks" },
+    // Kottu
+    { id: "kt1", name: "Chicken Kottu", price: 850.00, category: "Kottu" },
+    { id: "kt2", name: "Egg Kottu", price: 700.00, category: "Kottu" },
+    { id: "kt3", name: "Cheese Chicken Kottu", price: 1250.00, category: "Kottu" },
+    { id: "kt4", name: "Vegetable Kottu", price: 600.00, category: "Kottu" },
+    { id: "kt5", name: "Dolphin Kottu (Chicken)", price: 950.00, category: "Kottu" },
+
+    // Hoppers & String Hoppers
+    { id: "hp1", name: "Plain Hopper", price: 60.00, category: "Hoppers" },
+    { id: "hp2", name: "Egg Hopper", price: 150.00, category: "Hoppers" },
+    { id: "hp3", name: "String Hoppers (Set of 10)", price: 250.00, category: "Hoppers" },
+    { id: "hp4", name: "Milk Hopper", price: 100.00, category: "Hoppers" },
+
+    // Short Eats
+    { id: "se1", name: "Fish Cutlet (Piece)", price: 80.00, category: "Short Eats" },
+    { id: "se2", name: "Egg Roti", price: 180.00, category: "Short Eats" },
+    { id: "se3", name: "Vegetable Patty", price: 70.00, category: "Short Eats" },
+    { id: "se4", name: "Chicken Chinese Roll", price: 120.00, category: "Short Eats" },
+    { id: "se5", name: "Ulundu Vadai", price: 90.00, category: "Short Eats" },
+
+    // Beverages
+    { id: "bv1", name: "Ceylon Tea (Milk)", price: 120.00, category: "Beverages" },
+    { id: "bv2", name: "Ginger Beer (EGB)", price: 220.00, category: "Beverages" },
+    { id: "bv3", name: "Woodapple Juice", price: 350.00, category: "Beverages" },
+    { id: "bv4", name: "Fresh Lime Juice", price: 280.00, category: "Beverages" },
+    { id: "bv5", name: "King Coconut", price: 150.00, category: "Beverages" },
+    { id: "bv6", name: "Milo (Cold)", price: 250.00, category: "Beverages" },
 
     // Desserts
-    { id: "de1", name: "Cheesecake", price: 6.99, category: "Desserts" },
-    { id: "de2", name: "Brownie", price: 5.99, category: "Desserts" },
-    { id: "de3", name: "Ice Cream", price: 4.99, category: "Desserts" },
-
-    // Add-ons
-    { id: "a1", name: "Extra Cheese", price: 1.50, category: "Add-ons" },
-    { id: "a2", name: "Bacon", price: 2.00, category: "Add-ons" },
-    { id: "a3", name: "Sauce", price: 0.50, category: "Add-ons" },
+    { id: "ds1", name: "Watalappam", price: 450.00, category: "Desserts" },
+    { id: "ds2", name: "Curd & Treacle", price: 380.00, category: "Desserts" },
+    { id: "ds3", name: "Caramel Pudding", price: 420.00, category: "Desserts" },
+    { id: "ds4", name: "Fruit Salad", price: 550.00, category: "Desserts" },
 ];
 
 export const CATEGORIES: { id: string; label: string; modifierGroups?: string[] }[] = [
-    { id: "Food", label: "Food", modifierGroups: ["mg_sides"] },
-    { id: "Drinks", label: "Drinks", modifierGroups: ["mg_sugar", "mg_size"] },
+    { id: "Rice & Curry", label: "Rice & Curry", modifierGroups: ["mg_spice"] },
+    { id: "Kottu", label: "Kottu", modifierGroups: ["mg_spice", "mg_kottu_extra"] },
+    { id: "Hoppers", label: "Hoppers", modifierGroups: ["mg_sides_sl"] },
+    { id: "Short Eats", label: "Short Eats" },
+    { id: "Beverages", label: "Beverages", modifierGroups: ["mg_sugar_sl"] },
     { id: "Desserts", label: "Desserts" },
-    { id: "Add-ons", label: "Add-ons" },
 ];
 
 export const MODIFIER_GROUPS = [
     {
-        id: "mg_sugar",
+        id: "mg_spice",
+        label: "Spice Level",
+        selectionType: "single",
+        minSelection: 1,
+        maxSelection: 1,
+        options: [
+            { id: "sp_mild", label: "Mild", price: 0 },
+            { id: "sp_med", label: "Medium", price: 0 },
+            { id: "sp_hot", label: "Spicy", price: 0 },
+        ]
+    },
+    {
+        id: "mg_kottu_extra",
+        label: "Extras",
+        selectionType: "multiple",
+        minSelection: 0,
+        maxSelection: 3,
+        options: [
+            { id: "ex_cheese", label: "Extra Cheese", price: 250.00 },
+            { id: "ex_egg", label: "Extra Egg", price: 100.00 },
+            { id: "ex_gravy", label: "Extra Gravy", price: 50.00 },
+        ]
+    },
+    {
+        id: "mg_sugar_sl",
         label: "Sugar Level",
         selectionType: "single",
         minSelection: 1,
         maxSelection: 1,
         options: [
-            { id: "s_0", label: "0%", price: 0 },
-            { id: "s_50", label: "50%", price: 0 },
-            { id: "s_100", label: "100%", price: 0 },
+            { id: "s_no", label: "No Sugar", price: 0 },
+            { id: "s_less", label: "Less Sugar", price: 0 },
+            { id: "s_normal", label: "Normal Sugar", price: 0 },
         ]
     },
     {
-        id: "mg_size",
-        label: "Size",
-        selectionType: "single",
-        minSelection: 1,
-        maxSelection: 1,
-        options: [
-            { id: "sz_reg", label: "Regular", price: 0 },
-            { id: "sz_lrg", label: "Large", price: 1.50 },
-        ]
-    },
-    {
-        id: "mg_sides",
+        id: "mg_sides_sl",
         label: "Sides",
         selectionType: "multiple",
         minSelection: 0,
         maxSelection: 2,
         options: [
-            { id: "sd_fries", label: "Fries", price: 4.00 },
-            { id: "sd_salad", label: "Coleslaw", price: 3.00 },
+            { id: "sd_lunu", label: "Lunu Miris", price: 50.00 },
+            { id: "sd_seeni", label: "Seeni Sambol", price: 70.00 },
+            { id: "sd_dhal", label: "Dhal Curry", price: 150.00 },
         ]
     }
 ];

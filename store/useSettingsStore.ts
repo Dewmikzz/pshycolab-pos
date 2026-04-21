@@ -49,11 +49,11 @@ export const useSettingsStore = create<SettingsState>()(
             isLocked: true, // Default to locked on load
 
             receiptSettings: {
-                businessName: "PSYCHOLAB POS",
-                addressLine1: "123 Food Street, Tech City",
-                addressLine2: "Innovation District",
-                contactPhone: "+1 234 567 890",
-                footerMessage: "Thank you for dining with us!"
+                businessName: "CEYLON SPICE BISTRO",
+                addressLine1: "No. 45, Galle Road",
+                addressLine2: "Colombo 03, Sri Lanka",
+                contactPhone: "+94 11 234 5678",
+                footerMessage: "Thank you for dining with us! Come again."
             },
 
             printers: [],

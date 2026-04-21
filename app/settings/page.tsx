@@ -19,7 +19,7 @@ export default function SettingsPage() {
         updatePrinter
     } = useSettingsStore();
 
-    const [activeTab, setActiveTab] = useState<'security' | 'receipt' | 'printers'>('security');
+    const [activeTab, setActiveTab] = useState<'security' | 'receipt' | 'printers' | 'danger'>('security');
     const [tempPassword, setTempPassword] = useState(lockPassword);
     const [saved, setSaved] = useState(false);
 
@@ -101,6 +101,13 @@ export default function SettingsPage() {
                     >
                         <Printer size={20} />
                         <span className="font-bold">Printers</span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('danger')}
+                        className={`flex items-center gap-3 p-3 rounded-xl text-left transition-colors ${activeTab === 'danger' ? 'bg-red-600 text-white shadow-lg shadow-red-900/20' : 'text-red-400 hover:bg-red-500/10 hover:text-red-500 mt-auto'}`}
+                    >
+                        <Trash2 size={20} />
+                        <span className="font-bold">Danger Zone</span>
                     </button>
                 </div>
 
@@ -404,6 +411,38 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
                             )}
+                        </motion.div>
+                    )}
+                    {activeTab === 'danger' && (
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8 max-w-lg">
+                            <div className="p-6 bg-red-500/5 border border-red-500/20 rounded-2xl">
+                                <h2 className="text-xl font-bold text-red-500 mb-4 flex items-center gap-2">
+                                    <Trash2 size={24} />
+                                    Reset Menu Data
+                                </h2>
+                                <p className="text-pos-text-secondary text-sm mb-6">
+                                    Warning: This will delete your current products, categories, and modifiers and replace them with authentic Sri Lankan restaurant samples.
+                                </p>
+                                
+                                <button
+                                    onClick={async () => {
+                                        if (confirm("Are you sure? This will OVERWRITE your current menu with Sri Lankan sample data.")) {
+                                            const { seedSriLankanData } = await import("@/services/menuService");
+                                            try {
+                                                await seedSriLankanData();
+                                                alert("Sri Lankan Menu Seeded! Please refresh the page to see changes.");
+                                                window.location.reload();
+                                            } catch (e: any) {
+                                                alert("Error: " + e.message);
+                                            }
+                                        }
+                                    }}
+                                    className="w-full py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-900/30 flex items-center justify-center gap-2"
+                                >
+                                    <Plus size={20} />
+                                    SEED SRI LANKAN MENU
+                                </button>
+                            </div>
                         </motion.div>
                     )}
                 </div>
