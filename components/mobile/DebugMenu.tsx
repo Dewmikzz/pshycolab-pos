@@ -1,7 +1,7 @@
 
 "use client";
 
-import { seedMalaysianData } from "@/services/menuService";
+import { seedSriLankanData } from "@/services/menuService";
 import { Wrench } from "lucide-react";
 import { useState } from "react";
 
@@ -10,9 +10,9 @@ export function DebugMenu() {
     const [open, setOpen] = useState(false);
 
     const handleSeed = async () => {
-        if (!confirm("Overwrite/Append with Malaysian Data?")) return;
+        if (!confirm("Overwrite/Append with Sri Lankan Data?")) return;
         setLoading(true);
-        await seedMalaysianData();
+        await seedSriLankanData();
         setLoading(false);
         setOpen(false);
         window.location.reload();
@@ -36,9 +36,9 @@ export function DebugMenu() {
                 <button
                     onClick={handleSeed}
                     disabled={loading}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl"
+                    className="w-full py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold rounded-xl"
                 >
-                    {loading ? "Seeding..." : "Seed Malaysian Menu 🇲🇾"}
+                    {loading ? "Seeding..." : "Seed Sri Lankan Menu 🇱🇰"}
                 </button>
                 <button
                     onClick={() => setOpen(false)}
